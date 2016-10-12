@@ -121,7 +121,7 @@ class WorklogEntriesCommand extends Command
                 $jql .= " and worklogAuthor in (" . $input->getOption("authors-whitelist") . ")";
             }
 
-            $search_result = $jira->search($jql, $offset, self::MAX_ISSUES_PER_QUERY, "key,project,labels");
+            $search_result = $jira->search($jql, $offset, self::MAX_ISSUES_PER_QUERY, "key,project,labels,summary");
 
             if ($progress == null) {
                 /** @var ProgressBar $progress */
@@ -135,6 +135,7 @@ class WorklogEntriesCommand extends Command
                 $fields = $issue->getFields();
                 $project = $fields['Project']["key"];
                 $labels = $fields['Labels'];
+                $summary = $fields['Summary'];
 
                 if (isset($labels_whitelist)) {
                     $labels = array_intersect($labels, $labels_whitelist);
@@ -173,6 +174,7 @@ class WorklogEntriesCommand extends Command
                           'duration_h' => round(($entry["timeSpentSeconds"] / 3600), 2),
                           'author' => $author,
                           'labels' => implode(', ', $labels),
+                          'summary' => $summary,
                           'comment' => $entry['comment'],
                         );
                     }
@@ -202,6 +204,7 @@ class WorklogEntriesCommand extends Command
           'Duration (h)' => '#,##0.00',
           'Author' => 'string',
           'Labels' => 'string',
+          'Summary' => 'string',
           'Comment' => 'string',
         );
 
@@ -214,7 +217,7 @@ class WorklogEntriesCommand extends Command
 
             // Add rows with worklogs.
             $i = 0;
-            foreach ($worklogs[$project] as $row) {
+            foreach (array_reverse($worklogs[$project]) as $row) {
                 $writer->writeSheetRow($project, $row);
                 $i++;
             }
