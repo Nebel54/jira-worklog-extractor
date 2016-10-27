@@ -61,6 +61,10 @@ class WorklogEntriesCommand extends Command
                 InputOption::VALUE_OPTIONAL,
                 'Whitelist of labels (comma separated)'
             )->addOption(
+                'projects-whitelist', null,
+                InputOption::VALUE_OPTIONAL,
+                'Whitelist of projects (comma separated)'
+            )->addOption(
                 'labels-blacklist', null,
                 InputOption::VALUE_OPTIONAL,
                 'Blacklist of labels (comma separated)'
@@ -114,11 +118,15 @@ class WorklogEntriesCommand extends Command
             }
 
             if ($input->getOption("labels-blacklist")) {
-                $jql .= " and labels not in (" . $input->getOption("labels-blacklist") . ")";
+                $jql .= " and (labels not in (" . $input->getOption("labels-blacklist") . ") OR labels is EMPTY )";
             }
 
             if ($input->getOption("authors-whitelist")) {
                 $jql .= " and worklogAuthor in (" . $input->getOption("authors-whitelist") . ")";
+            }
+
+            if ($input->getOption("projects-whitelist")) {
+                $jql .= " and project in (" . $input->getOption("projects-whitelist") . ")";
             }
 
             $search_result = $jira->search($jql, $offset, self::MAX_ISSUES_PER_QUERY, "key,project,labels,summary");
