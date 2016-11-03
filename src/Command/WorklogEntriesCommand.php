@@ -28,6 +28,15 @@ class WorklogEntriesCommand extends Command
 {
     const MAX_ISSUES_PER_QUERY = 100;
 
+    /**
+     * Explodes and re-implodes an filter from commandline and wraps the elements in \".
+     * @param $filter
+     */
+    private function escapeJqlInFilter($filter) {
+        $filters = explode(",", $filter);
+        $escaped_filter = '"' . implode('","', $filters) . '"';
+        return $escaped_filter;
+    }
     protected function configure()
     {
         $this
@@ -113,20 +122,20 @@ class WorklogEntriesCommand extends Command
             $jql = "worklogDate <= " . $end_time . " and worklogDate >= " . $start_time . " and timespent > 0  and timeSpent < " . rand(1000000, 9000000) . " ";
 
             if ($input->getOption("labels-whitelist")) {
-                $jql .= " and labels in (" . $input->getOption("labels-whitelist") . ")";
+                $jql .= " and labels in (" . $this->escapeJqlInFilter($input->getOption("labels-whitelist")) . ")";
                 $labels_whitelist = explode(",", $input->getOption("labels-whitelist"));
             }
 
             if ($input->getOption("labels-blacklist")) {
-                $jql .= " and (labels not in (" . $input->getOption("labels-blacklist") . ") OR labels is EMPTY )";
+                $jql .= " and (labels not in (" . $this->escapeJqlInFilter($input->getOption("labels-blacklist")) . ") OR labels is EMPTY )";
             }
 
             if ($input->getOption("authors-whitelist")) {
-                $jql .= " and worklogAuthor in (" . $input->getOption("authors-whitelist") . ")";
+                $jql .= " and worklogAuthor in (" . $this->escapeJqlInFilter($input->getOption("authors-whitelist")) . ")";
             }
 
             if ($input->getOption("projects-whitelist")) {
-                $jql .= " and project in (" . $input->getOption("projects-whitelist") . ")";
+                $jql .= " and project in (" . $this->escapeJqlInFilter($input->getOption("projects-whitelist")) . ")";
             }
 
             $search_result = $jira->search($jql, $offset, self::MAX_ISSUES_PER_QUERY, "key,project,labels,summary");
@@ -150,7 +159,7 @@ class WorklogEntriesCommand extends Command
                 }
 
                 if (count($labels) > 1) {
-                    $output->write("<error>" . $issue . " has multiple labels: " . implode(", ", $labels) . "</error>");
+                    $output->write("<error>" . $issue->getKey() . " has multiple labels: " . implode(", ", $labels) . "</error>");
                 }
 
                 $worklog_result = $jira->getWorklogs($issue->getKey(), []);
@@ -175,6 +184,9 @@ class WorklogEntriesCommand extends Command
                             continue;
                         }
 
+                        if (empty($entry['comment'])) {
+                            $entry['comment'] = '';
+                        }
                         $worklogs[$project][] = array(
                           'date' => $worklog_date->format("Y-m-d"),
                           'key' => $issue->getKey(),
