@@ -159,7 +159,7 @@ class WorklogEntriesCommand extends Command
                 }
 
                 if (count($labels) > 1) {
-                    $output->write("<error>" . $issue->getKey() . " has multiple labels: " . implode(", ", $labels) . "</error>");
+                    //$output->write("<error>" . $issue->getKey() . " has multiple labels: " . implode(", ", $labels) . "</error>");
                 }
 
                 $worklog_result = $jira->getWorklogs($issue->getKey(), []);

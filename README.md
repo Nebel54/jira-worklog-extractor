@@ -18,6 +18,10 @@ To run it:
 php app.php load-project-totals 2016-01-01 2016-03-31
 ````
 
+Example command to extract all Worklog entries for a specific project ("SUP")
+````bash
+php app.php worklog-entries --projects-whitelist="SUP" 2016-11-01
+
 Example command:
 ````bash
 php app.php load-project-totals 2016-01-01 2016-03-31
